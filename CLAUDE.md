@@ -66,6 +66,10 @@ cli/                              # CLI installer (ui-ux-pro-max-cli on npm)
 .claude/skills/ui-ux-pro-max/     # Claude Code skill: hand-authored SKILL.md +
                                    # data/, scripts/ mirrored from src/ (see Sync Rules)
 .claude-plugin/                   # Claude Marketplace publishing
+
+dashboard/                        # Local Next.js 15 app (overview / usage / run tabs)
+├── lib/stats.ts, lib/search.ts   # Hardcoded stat counts + domain/stack lists
+└── components/*Tab.tsx           # Standalone — not wired into sync-assets
 ```
 
 The search engine uses BM25 ranking combined with regex matching. Domain auto-detection is available when `--domain` is omitted.
@@ -101,6 +105,31 @@ When modifying files:
    mirrored or template-generated -- edit it directly.
 
 4. **Reference Folders** - No manual sync needed. The CLI generates these from templates during `uipro init`.
+
+## Checks
+
+Run from `cli/` (they `cd ..` where needed). `prepublishOnly` chains all of them:
+
+```bash
+npm run validate:csv    # scripts/validate-csv.py — CSV schema/integrity
+npm run smoke:domains   # scripts/smoke-domains.sh — one search per domain
+npm run smoke:stacks    # scripts/smoke-stacks.sh — one search per stack
+npm run typecheck       # tsc --noEmit (CLI only)
+npm run check:assets    # sync-assets.mjs --check, mirrors the CI job
+```
+
+CI workflows: `.github/workflows/{tests,check-asset-sync,smoke-stacks,release}.yml`.
+
+## Dashboard
+
+```bash
+cd dashboard && npm run dev    # http://localhost:8005
+```
+
+Standalone — not covered by `sync-assets.mjs` or the asset-sync CI job. `lib/stats.ts`
+hardcodes the CSV row counts and `lib/search.ts` hardcodes the domain and stack lists,
+so adding a domain, a stack, or rows to a CSV silently leaves the dashboard stale until
+those constants are updated by hand.
 
 ## Prerequisites
 
